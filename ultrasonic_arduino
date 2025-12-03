@@ -1,0 +1,75 @@
+/*
+ * Arduino Nano BLE - Ultrasonic Sensor with Servo Controller
+ * Scans at 0°, 90°, 180° and sends distance,angle via serial
+ */
+
+#include <Servo.h>
+
+// Pin definitions
+#define TRIG_PIN 9
+#define ECHO_PIN 10
+#define SERVO_PIN 6
+
+Servo scanServo;
+
+// Scanning angles
+int scanAngles[] = {90, 0, 180}; // Front, Right, Left
+int currentAngleIndex = 0;
+
+void setup() {
+  Serial.begin(9600);
+  
+  // Ultrasonic sensor pins
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  
+  // Attach servo
+  scanServo.attach(SERVO_PIN);
+  scanServo.write(90); // Start at front position
+  
+  delay(1000); // Allow servo to reach position
+}
+
+void loop() {
+  // Get current angle
+  int angle = scanAngles[currentAngleIndex];
+  
+  // Move servo to angle
+  scanServo.write(angle);
+  delay(300); // Wait for servo to stabilize
+  
+  // Measure distance
+  float distance = getDistance();
+  
+  // Send data: distance,angle
+  Serial.print(distance);
+  Serial.print(",");
+  Serial.println(angle);
+  
+  // Move to next angle
+  currentAngleIndex = (currentAngleIndex + 1) % 3;
+  
+  delay(100); // Short delay before next reading
+}
+
+float getDistance() {
+  // Send trigger pulse
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  
+  // Read echo pulse
+  long duration = pulseIn(ECHO_PIN, HIGH, 30000); // 30ms timeout
+  
+  // Calculate distance in cm
+  float distance = duration * 0.034 / 2.0;
+  
+  // Return 0 if out of range or error
+  if (distance == 0 || distance > 400) {
+    return 0;
+  }
+  
+  return distance;
+}
