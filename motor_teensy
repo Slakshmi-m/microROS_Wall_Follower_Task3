@@ -140,7 +140,7 @@ bool create_entities()
     &subscriber,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-    "micro_ros_algorri_subscriber"));
+    "micro_ros_sree_subscriber"));
 
   // Create executor
   RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
